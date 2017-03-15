@@ -3,6 +3,7 @@
 
 # Packages ----
 library(dplyr)
+library(ggplot2)
 # Set working directory to source location
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
@@ -19,7 +20,18 @@ names(LPIdata_Feb2016)
 LPIdata_Feb2016_UK <- LPIdata_Feb2016 %>%
   filter(., grepl("United Kingdom", Country_list))
 
+# Explore data ----
+## Plot a dot plot of the number of counts of various `Class` groups
+### Create summary data frame
+LPI_UK_class_summ <- LPIdata_Feb2016_UK %>%
+  group_by(Class) %>%
+  summarise(n = n())
 
+### Create dot plot
+ggplot(LPI_UK_class_summ, aes(x = Class, y = n)) + 
+  geom_point(aes(colour = Class), size = 5) + 
+  theme(axis.title = element_text(size = 16), 
+        axis.text = element_text(size = 12))
 
 # Create ggmaps of record distributions ----
 ## Single species
