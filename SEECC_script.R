@@ -29,10 +29,7 @@ LPI_UK_class_summ <- LPIdata_Feb2016_UK %>%
 
 ### Create dot plot
 ggplot(LPI_UK_class_summ, aes(x = Class, y = n)) + 
-  geom_point(aes(colour = Class), size = 5) + 
-  theme(axis.title = element_text(size = 16), 
-        axis.text = element_text(size = 12))
-
+  geom_point(aes(colour = Class), size = 5)
 # Create ggmaps of record distributions ----
 ## Single species
 
