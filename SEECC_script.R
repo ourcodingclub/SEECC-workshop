@@ -1,9 +1,13 @@
 # SEECC LPI Data 
 # John Godlee (johngodlee@gmail.com)
 
-# Packages ----
-library(dplyr)
+# Packages ---
+library(devtools)
+library(ggmap)
 library(ggplot2)
+library(dplyr)
+library(data.table)
+
 # Set working directory to source location
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
@@ -11,6 +15,7 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 load("LPIUKall.RData")
 load("LPIdata_Feb2016.RData")
   # load("GBIF.RData")
+Atlantic_puffin <- fread("Atlantic_puffin.csv", sep = "\t")
 
 # Clean data ----
 ## Remove whitespace in variable names 
@@ -45,5 +50,22 @@ ggplot(LPIUKall, aes(x = lengthyear, y = slope)) +
 
 ## Automate for all species using *apply()
 
-?geom_line
+# Create a map of GBIF data from the Puffin ----
+bbox <- c(min(Atlantic_puffin$decimallongitude) - 2,
+          min(Atlantic_puffin$decimallatitude) - 2,
+          max(Atlantic_puffin$decimallongitude) + 2,
+          max(Atlantic_puffin$decimallatitude) + 2
+          )
+
+Map <- get_map(location=bbox, source="stamen", maptype="toner")
+
+ggmap(Map) +
+  geom_point(aes(x = decimallongitude,
+                 y = decimallatitude), colour = "blue",
+             data = Atlantic_puffin, 
+             alpha = 0.1,
+             size = 2) +
+  xlab(expression("Decimal Longitude ("*degree*")")) +
+  ylab(expression("Decimal Latitude ("*degree*")")) + 
+  theme(legend.title=element_blank())
 
