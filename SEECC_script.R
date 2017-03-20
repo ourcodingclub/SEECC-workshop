@@ -6,14 +6,14 @@ library(devtools)
 library(ggmap)
 library(ggplot2)
 library(dtplyr)
+library(dplyr)
+library(data.table)
 
 # Set working directory to source location
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 # Load data ----
-load("LPIUKall.RData")
 load("LPIdata_Feb2016.RData")
-puffin <- fread("Atlantic_puffin.csv", sep = "\t")
 
 # Clean data ----
 ## Remove whitespace in variable names 
@@ -56,6 +56,9 @@ biome <- data %>%
   group_by(biome) %>%
   do(ggsave(ggplot(.,aes(x = estimate))+geom_histogram(),filename = gsub(" ","",paste("Biome_LPI/",unique(as.character(.$biome)),".pdf",sep="")),device="pdf"))
   
+# Make linear models for each population ----
+
+
 
 # Create ggmaps of record distributions ----
 ## Single species
