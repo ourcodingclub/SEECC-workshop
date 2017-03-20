@@ -43,6 +43,20 @@ ggplot(LPIdata_Feb2016_UK, aes(x = Decimal_Longitude, y = Decimal_Latitude, colo
 ggplot(LPIUKall, aes(x = lengthyear, y = slope)) + 
   geom_point()
 
+# Plots by biome (histograms of lm estimates of pop change)
+biome <- data %>%
+  mutate(Year = parse_number(Year)) %>%
+  filter(!is.na(Pop) & Are.coordinates.for.specific.location.=="TRUE") %>%
+  select(Common.Name,Location.of.population,Country.list,biome,Year,Pop,system,Native,Alien) %>%
+  group_by(Common.Name,Location.of.population,Country.list,biome,system,Native,Alien) %>%
+  filter(length(unique(Year)) > 2) %>%
+  do(fit = lm(Pop ~ Year, data = .)) %>%
+  tidy(fit) %>%
+  ungroup() %>%
+  group_by(biome) %>%
+  do(ggsave(ggplot(.,aes(x = estimate))+geom_histogram(),filename = gsub(" ","",paste("Biome_LPI/",unique(as.character(.$biome)),".pdf",sep="")),device="pdf"))
+  
+
 # Create ggmaps of record distributions ----
 ## Single species
 
