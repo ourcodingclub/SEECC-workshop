@@ -110,27 +110,3 @@ ggplot(LPI_models_slopes, aes(x=slope, fill=realm)) + geom_density(alpha=.3)
 
 # Gergana will add in plot with ggExtra and marginal histograms ----
 
-# Create ggmaps of record distributions ----
-## Single species
-
-## Automate for all species using *apply()
-
-# Create a map of GBIF data from the Puffin ----
-bbox <- c(min(Atlantic_puffin$decimallongitude) - 2,
-          min(Atlantic_puffin$decimallatitude) - 2,
-          max(Atlantic_puffin$decimallongitude) + 2,
-          max(Atlantic_puffin$decimallatitude) + 2
-          )
-
-Map <- get_map(location=bbox, source="stamen", maptype="toner")
-
-ggmap(Map) +
-  geom_point(aes(x = decimallongitude,
-                 y = decimallatitude), colour = "blue",
-             data = Atlantic_puffin, 
-             alpha = 0.1,
-             size = 2) +
-  xlab(expression("Decimal Longitude ("*degree*")")) +
-  ylab(expression("Decimal Latitude ("*degree*")")) + 
-  theme(legend.title=element_blank())
-
