@@ -5,8 +5,7 @@
 library(devtools)
 library(ggmap)
 library(ggplot2)
-library(dplyr)
-library(data.table)
+library(dtplyr)
 
 # Set working directory to source location
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
@@ -14,8 +13,7 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 # Load data ----
 load("LPIUKall.RData")
 load("LPIdata_Feb2016.RData")
-  # load("GBIF.RData")
-Atlantic_puffin <- fread("Atlantic_puffin.csv", sep = "\t")
+puffin <- fread("Atlantic_puffin.csv", sep = "\t")
 
 # Clean data ----
 ## Remove whitespace in variable names 
