@@ -1,5 +1,7 @@
-# SEECC LPI Data 
+# Visualising species occurrence and quantifying population change
 # John Godlee (johngodlee@gmail.com)
+# Gergana Daskalova (gndaskalova@gmail.com)
+# Isla Myers-Smith (isla.myers-smith@ed.ac.uk)
 
 # Packages ---
 library(devtools)
@@ -7,6 +9,7 @@ library(ggmap)
 library(ggplot2)
 library(dplyr)
 library(data.table)
+library(ggExtra)
 
 # Set working directory to source location
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
@@ -58,6 +61,7 @@ biome <- data %>%
   group_by(biome) %>%
   do(ggsave(ggplot(.,aes(x = estimate))+geom_histogram(),filename = gsub(" ","",paste("Biome_LPI/",unique(as.character(.$biome)),".pdf",sep="")),device="pdf"))
   
+# Gergana will add in plot with ggExtra and marginal histograms
 
 # Create ggmaps of record distributions ----
 ## Single species
