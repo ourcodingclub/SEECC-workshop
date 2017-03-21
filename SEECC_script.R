@@ -18,7 +18,7 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 # Load data ----
 LPIdata_Feb2016 <- read.csv("LPIdata_Feb2016.csv")
-LPIdata_Feb2016 <- LPIdata_Feb2016[-3796,]      # We should delete these rows and save the file again just for the purpose of the tutorial since they mess up plots
+LPIdata_Feb2016 <- LPIdata_Feb2016[-3796,]  # We should delete these rows and save the file again just for the purpose of the tutorial since they mess up plots
 LPIdata_Feb2016 <- LPIdata_Feb2016[-3798,]
 LPIdata_Feb2016 <- LPIdata_Feb2016[-3825,]
 LPIdata_Feb2016 <- LPIdata_Feb2016[-4193,]
@@ -38,6 +38,7 @@ LPIdata_Feb2016 <- LPIdata_Feb2016[-15327,]
 LPIdata_Feb2016 <- LPIdata_Feb2016[-15327,]
 LPIdata_Feb2016 <- LPIdata_Feb2016[-15327,]
 LPIdata_Feb2016 <- LPIdata_Feb2016[-16412,]
+
 save(LPIdata_Feb2016, file = "LPIdata_Feb2016.RData")
 
 load("LPIdata_Feb2016.RData")
@@ -46,38 +47,44 @@ load("LPIdata_Feb2016.RData")
 View(head(LPIdata_Feb2016))
 
 # Clean data ----
-## Format column names 
-names(LPIdata_Feb2016) <- gsub(".", "_", names(LPIdata_Feb2016), fixed = TRUE) %>%
-  tolower(.)
 
-names(LPIdata_Feb2016) <- names(LPIdata_Feb2016) %>%
-  gsub(".", "_", ., fixed = TRUE) %>%
-  tolower(.)
+## Make a column for genus_species_id
+LPI_long$genus_species_id <- paste(LPI_long$genus, LPI_long$species, LPI_long$id, sep = "_")
 
 ## Transform to long format, add useful columns, remove rows without sufficient data
 LPI_long <- LPIdata_Feb2016 %>%
   gather("year", "pop", select = 26:70) %>%  # Transform to long format
   mutate(year = parse_number(.$year)) %>%  # Deprecated, extract_numeric() -> parse_numeric() -> parse_number(), extract numeric from atomic
-  mutate(., genus_species = paste(genus, species, sep = '_')) %>%  # Create a species column by concatenating genus and species
   distinct(.) %>%  # Remove duplicate rows
   filter(., is.finite(pop)) %>%  # Keep only rows with a population estimate
-  group_by(., common_name, genus_species, id) %>%  # group rows so that each group is one population (id) from one species (species+Common.Name)
+  group_by(., common_name, genus_species_id) %>%  # group rows so that each group is one population (id) from one species (species+Common.Name)
   mutate(., maxyear = max(year), minyear = min(year)) %>%  # Create a column for the max and min years for each group
   mutate(., lengthyear = maxyear-minyear) %>%  # Create a column for the length of time data available
   ungroup(.) %>%  # Remove groupings
-  group_by(., common_name, genus_species, id, units) %>%  # Groups Measurement_type(Units)>population(id)>species(Common.Name+species)
+  group_by(., common_name, genus_species_id, units) %>%  # Groups Measurement_type(Units)>population(id)>species(Common.Name+species)
   mutate(., scalepop = (pop-min(pop))/(max(pop)-min(pop))) %>%  # Scale population trend from 0 to 1
   filter(., is.finite(scalepop)) %>%  # Remove rows without a scalepop
   mutate(., meanpop = mean(pop)) %>%  # Create column for mean population
   ungroup(.) %>%
-  group_by(., common_name, genus_species, id) %>%
+  group_by(., common_name, genus_species_id) %>%
   mutate(., meanpop.size = mean(meanpop)) %>%  # Create column for mean mean population
   ungroup(.)
 
+## Format column names 
+names(LPI_long) <- gsub(".", "_", names(LPI_long), fixed = TRUE) %>%
+  tolower(.)
+
+names(LPI_long) <- names(LPI_long) %>%
+  gsub(".", "_", ., fixed = TRUE) %>%
+  tolower(.)
+
+# Summarise the data set ----
+LPI_summ <- LPI_long %>%
+  group_by()
 
 # Make linear models for each population ----
 LPI_models <- LPI_long %>%
-  group_by(., common_name, genus_species, id, units) %>%  # Groups Measurement_type(Units)>population(id)>species(Common.Name+species)
+  group_by(., common_name, genus_species_id, units) %>%  # Groups Measurement_type(Units)>population(id)>species(Common.Name+species)
   do(mod = lm(scalepop~year, data = .)) %>%  # Create a linear model for each group
   mutate(., n = df.residual(mod),  # Create columns: degrees of freedom
          intercept=summary(mod)$coeff[1],  # intercept coefficient
@@ -90,9 +97,9 @@ LPI_models <- LPI_long %>%
 
 # Merge data frames back together
 LPI_models_slopes <- merge(LPI_long, LPI_models) %>%
-  select(genus_species, class, id, units, mod, n,  intercept, slope, intercept_se, slope_se,
+  select(genus_species_id, class, id, units, mod, n,  intercept, slope, intercept_se, slope_se,
          intercept_p, slope_p, decimal_latitude, decimal_longitude, biome, realm,
-         maxyear, minyear, lengthyear, meanpop, meanpop.size, country_list, 
+         maxyear, minyear, lengthyear, meanpop, meanpop_size, country_list, 
          location_of_population, biome, realm, region, system, native, alien, pop) %>% # select only useful columns
   distinct(.)  # Remove any duplicate rows
 
@@ -112,7 +119,11 @@ ggplot() + map_world +
 
 ### How does the length of time the population has been studied affect the slope estimate?
 ggplot(LPI_models_slopes, aes(x = lengthyear, y = slope)) + 
-  geom_point()
+  geom_point(aes(colour = class))
+
+LPI_pop_summ <- LPI_long %>%
+  group_by(genus_species_id) %>%
+  summarise("mean_pop" = mean(pop))
 
 # Plots by biome (histograms of lm estimates of pop change)
 ## This doesn't work and I don't know what you're trying to do, is it similar to the histograms I've made below?
@@ -131,10 +142,6 @@ biome <- LPI_models_slopes %>%
 ggplot(LPI_models_slopes, aes(x=slope, fill=system)) + geom_density(alpha=.3)
 ggplot(LPI_models_slopes, aes(x=slope, fill=biome)) + geom_density(alpha=.3)
 ggplot(LPI_models_slopes, aes(x=slope, fill=realm)) + geom_density(alpha=.3)
-
-
-
-
 
 # Gergana will add in plot with ggExtra and marginal histograms ----
 
