@@ -17,7 +17,31 @@ library(readr)
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 # Load data ----
-load("LPIdata_Feb2016.RData")
+LPIdata_Feb2016 <- read.csv("LPIdata_Feb2016.csv")
+LPIdata_Feb2016 <- LPIdata_Feb2016[-3796,]      # We should delete these rows and save the file again just for the purpose of the tutorial since they mess up plots
+LPIdata_Feb2016 <- LPIdata_Feb2016[-3798,]
+LPIdata_Feb2016 <- LPIdata_Feb2016[-3825,]
+LPIdata_Feb2016 <- LPIdata_Feb2016[-4193,]
+LPIdata_Feb2016 <- LPIdata_Feb2016[-7886,]
+LPIdata_Feb2016 <- LPIdata_Feb2016[-13101,]
+LPIdata_Feb2016 <- LPIdata_Feb2016[-14354,]
+LPIdata_Feb2016 <- LPIdata_Feb2016[-15310,]
+LPIdata_Feb2016 <- LPIdata_Feb2016[-15327,]
+LPIdata_Feb2016 <- LPIdata_Feb2016[-15327,]
+LPIdata_Feb2016 <- LPIdata_Feb2016[-15327,]
+LPIdata_Feb2016 <- LPIdata_Feb2016[-15327,]
+LPIdata_Feb2016 <- LPIdata_Feb2016[-15327,]
+LPIdata_Feb2016 <- LPIdata_Feb2016[-15327,]
+LPIdata_Feb2016 <- LPIdata_Feb2016[-15327,]
+LPIdata_Feb2016 <- LPIdata_Feb2016[-15327,]
+LPIdata_Feb2016 <- LPIdata_Feb2016[-15327,]
+LPIdata_Feb2016 <- LPIdata_Feb2016[-15327,]
+LPIdata_Feb2016 <- LPIdata_Feb2016[-15327,]
+LPIdata_Feb2016 <- LPIdata_Feb2016[-16412,]
+save(LPIdata_Feb2016, file = "LPIdata_Feb2016.RData")
+
+# Inspect data ----
+View(head(LPIdata_Feb2016))
 
 # Clean data ----
 ## Remove whitespace in variable names 
@@ -32,7 +56,7 @@ LPIdata_Feb2016 <- lower(LPIdata_Feb2016)
 
 ## Transform to long format, add useful columns, remove rows without sufficient data
 LPI_long <- LPIdata_Feb2016 %>%
-  gather("year", "pop", 26:70) %>%  # Transform to long format
+  gather("year", "pop", select = 26:70) %>%  # Transform to long format
   mutate(year = parse_number(.$year)) %>%  # Deprecated, extract_numeric() -> parse_numeric() -> parse_number(), extract numeric from atomic
   mutate(., genus_species = paste(genus, species, sep = '_')) %>%  # Create a species column by concatenating genus and species
   distinct(.) %>%  # Remove duplicate rows
@@ -49,6 +73,8 @@ LPI_long <- LPIdata_Feb2016 %>%
   group_by(., common_name, genus_species, id) %>%
   mutate(., meanpop.size = mean(meanpop)) %>%  # Create column for mean mean population
   ungroup(.)
+
+
 
 # Make linear models for each population ----
 LPI_models <- LPI_long %>%
@@ -106,6 +132,9 @@ biome <- LPI_models_slopes %>%
 ggplot(LPI_models_slopes, aes(x=slope, fill=system)) + geom_density(alpha=.3)
 ggplot(LPI_models_slopes, aes(x=slope, fill=biome)) + geom_density(alpha=.3)
 ggplot(LPI_models_slopes, aes(x=slope, fill=realm)) + geom_density(alpha=.3)
+
+
+
 
 
 # Gergana will add in plot with ggExtra and marginal histograms ----
