@@ -40,20 +40,19 @@ LPIdata_Feb2016 <- LPIdata_Feb2016[-15327,]
 LPIdata_Feb2016 <- LPIdata_Feb2016[-16412,]
 save(LPIdata_Feb2016, file = "LPIdata_Feb2016.RData")
 
+load("LPIdata_Feb2016.RData")
+
 # Inspect data ----
 View(head(LPIdata_Feb2016))
 
 # Clean data ----
-## Remove whitespace in variable names 
-names(LPIdata_Feb2016)
-names(LPIdata_Feb2016) <- gsub(" ", "_", names(LPIdata_Feb2016), fixed = TRUE)
-names(LPIdata_Feb2016)
+## Format column names 
+names(LPIdata_Feb2016) <- gsub(".", "_", names(LPIdata_Feb2016), fixed = TRUE) %>%
+  tolower(.)
 
-lower <- function (df) {
-  names(df) <- tolower(names(df))
-  df
-}
-LPIdata_Feb2016 <- lower(LPIdata_Feb2016)
+names(LPIdata_Feb2016) <- names(LPIdata_Feb2016) %>%
+  gsub(".", "_", ., fixed = TRUE) %>%
+  tolower(.)
 
 ## Transform to long format, add useful columns, remove rows without sufficient data
 LPI_long <- LPIdata_Feb2016 %>%
@@ -74,7 +73,6 @@ LPI_long <- LPIdata_Feb2016 %>%
   group_by(., common_name, genus_species, id) %>%
   mutate(., meanpop.size = mean(meanpop)) %>%  # Create column for mean mean population
   ungroup(.)
-
 
 
 # Make linear models for each population ----
