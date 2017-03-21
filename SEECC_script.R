@@ -139,3 +139,96 @@ ggplot(LPI_models_slopes, aes(x=slope, fill=realm)) + geom_density(alpha=.3)
 
 # Gergana will add in plot with ggExtra and marginal histograms ----
 
+
+
+
+###########################
+### GBIF pufin data
+###########################
+
+#load the package
+library(rgbif)
+library(sp)
+
+#get the code for the UK
+UK_code <- isocodes[grep("United Kingdom", isocodes$name), "code"]
+
+#return the number of occurrences in the UK
+occ_count(country=UK_code)
+
+# scientific name for puffin
+species<-"Fratercula arctica"
+
+#download all the occurrences of Fratercula arctica in the UK that have geographic coordinates and return dataset
+occur<-occ_search(scientificName = species, country = UK_code, hasCoordinate = TRUE, year = '2005,2016', return = "data")
+str(occur)
+
+#map the occurrences
+#run this to see region names for the world database layer
+sort(unique(ggplot2::map_data("world")$region))
+
+#map the data
+gbifmap(occur, region="UK")
+
+##########################
+# Flickr data
+##########################
+
+flickr<-read.table("./flickr_puffins.txt",header=T)
+str(flickr)
+
+
+flickr$id<-as.character(flickr$id)
+flickr$owner<-as.character(flickr$owner)
+flickr$datetaken<-as.character(flickr$datetaken)
+flickr$year<-as.factor(flickr$year)
+flickr$month<-factor(flickr$month,levels=c("Jan","Feb","Mar","Apr","May",
+                                                 "Jun","Jul","Aug","Sep","Oct","Nov","Dec"))
+
+flickr$date<-parse_date_time(as.character(flickr$dateonly),"ymd")  #transform character strings into time format
+
+
+######Plotting
+
+#load required package
+library(dismo)
+
+geopics<- flickr[,c(4,5)]                    #subset coordinates only
+
+coordinates(geopics)<-c("longitude","latitude") #make it spatial
+
+plot(geopics)                                   #plot
+
+#one point clearly not in the UK
+
+#find the point with low latitude
+which(flickr$latitude<48)
+
+#and delete it from the dataset
+flickr<-flickr[-which(flickr$latitude<48),]
+
+#check that data is all in the UK
+#using a nicer plot
+crs.geo <- CRS("+proj=longlat +ellps=WGS84 +datum=WGS84")  # geographical, datum WGS84
+proj4string(geopics) <- crs.geo                            # project coordinates
+
+
+library(rworldmap)
+# library rworldmap provides different types of global maps
+
+#plot the data
+plot(geopics, pch = 20, col = "steelblue")
+
+#and plot the UK's coastline
+data(countriesLow)
+plot(countriesLow, add = T)
+
+#one more problem
+#some puffin photos on land
+#we need to remove those
+
+
+
+
+
+
