@@ -8,55 +8,43 @@ library(ggmap)
 
 # Load data ----
 load("data/LPIdata_Feb2016.RData", envir=.GlobalEnv)
+map_world <- borders("world", colour="black", fill = "gray28")
 
 # Define UI ----
 ui <- navbarPage(title = "Living Planet Index",
                  tabPanel(title = "LPI Subsets"),
                  tabPanel(title = "Global Map",
-                          plotOutput("global_map"),
-checkboxGroupInput("biome_map", "Choose which biomes are displayed", c("Temperate coastal rivers",
-"Tropical and subtropical floodplain rivers and wetland complexes",
-"Unknown", 
-"Boreal forests/taiga",
-"Temperate floodplain rivers and wetlands",
-"Temperate broadleaf and mixed forests", 
-"Xeric freshwaters and endorheic basins",
-"Temperate upland rivers", 
-"Polar freshwaters", 
-"Tundra",
-"Temperate coniferous forests",
-"Large lakes", 
-"Tropical and subtropical coastal rivers",
-"Deserts and xeric shrublands",
-"Tropical and subtropical coniferous forests",
-"Tropical and subtropical moist broadleaf forests",
-"Montane freshwaters",
-"Polar seas",
-"Montane grasslands and shrublands",
-"Tropical and subtropical dry broadleaf forests",
-"Temperate upwelling",
-"Flooded grasslands and savannas",
-"Mangroves",
-"Tropical and subtropical upland rivers",
-"Tropical coral",
-"Large river deltas",
-"Oceanic islands",
-"Temperate shelves and seas",
-"Tropical upwelling",
-"Temperate grasslands savannas and shrublands",
-"Mediterranean forests woodlands and scrub",
-"Tropical and subtropical grasslands savannas and shrublands") ))
-                 )
-
+                          plotOutput("global_map", height = "600px"),
+selectInput(inputId = "realm", 
+            label = "Realm", 
+            choices = unique(LPIdata_Feb2016$realm),
+            multiple = TRUE
+            )
+)
+)
 # Define server logic ----
 server <- function(input, output) {
-  # Creating a map background
-  bbox <- c(left = -180, bottom = -70, right = 179, top = 85)
-  map <- get_map(bbox, zoom = 3)
+
   # Plot map
-  output$global_map <- renderPlot(ggmap(map)) #+
-                                    #geom_point(data = LPIdata_Feb2016[LPIdata_Feb2016$biome == input$biome_map,]))
-  
+  output$global_map <- renderPlot(
+    ggplot() + 
+      map_world +
+      geom_point(aes(x = Decimal_Longitude, 
+                     y = Decimal_Latitude, 
+                     colour = realm), 
+                 data = LPIdata_Feb2016[LPIdata_Feb2016$realm == input$realm,]) + 
+      theme_classic() + 
+      theme(axis.title = element_blank(), 
+            axis.text = element_blank(),
+            axis.ticks = element_blank(),
+            axis.line = element_blank(),
+            panel.border = element_rect(colour="black", fill = NA, size=1),
+            panel.background = element_rect(fill="#FCFCFC"),
+            legend.position = "bottom",
+            legend.title = element_blank(),
+            legend.text = element_text(size = 15)) +
+      guides(colour = guide_legend(override.aes = list(size = 10)))
+      )
 }
 # Run application ----
 shinyApp(ui = ui, server = server)
