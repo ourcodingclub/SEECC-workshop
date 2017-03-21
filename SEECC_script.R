@@ -45,6 +45,7 @@ View(head(LPIdata_Feb2016))
 
 # Clean data ----
 ## Remove whitespace in variable names 
+names(LPIdata_Feb2016)
 names(LPIdata_Feb2016) <- gsub(" ", "_", names(LPIdata_Feb2016), fixed = TRUE)
 names(LPIdata_Feb2016)
 
