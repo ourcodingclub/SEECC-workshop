@@ -233,9 +233,29 @@ plot(countriesLow, add = T)
 #we need to remove those
 
 #read UK shapefile
+library(rgdal)
+library(rgeos)
+library(raster)
 
+#read Great Britain shapefile
+GB<-readOGR(dsn = "./data/Countries_December_2014_Full_Clipped_Boundaries_in_Great_Britain.shp",layer = "Countries_December_2014_Full_Clipped_Boundaries_in_Great_Britain")
+plot(GB)
 
+#read Northern Ireland shapefile
+NI<-readOGR(dsn = "./data/OSNI_Open_Data_Largescale_Boundaries__NI_Outline.shp",layer = "OSNI_Open_Data_Largescale_Boundaries__NI_Outline")
+plot(NI)
 
+#both shapefile have many polygons
 
+#dissolve GB polygons
+GB_diss<-gUnaryUnion(GB)
+plot(GB_diss)
 
+#dissolve NI polygons
+NI_diss<-gUnaryUnion(NI)
+plot(NI_diss)
+
+#merge GB and NI to make UK
+UK<-raster::union(GB_diss,NI_diss)
+plot(UK)
 
