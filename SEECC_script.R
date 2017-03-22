@@ -173,6 +173,7 @@ gbifmap(occur, region="UK")
 ##########################
 # Flickr data
 ##########################
+library(lubridate)
 
 flickr<-read.table("./data/flickr_puffins.txt",header=T)
 str(flickr)
@@ -209,6 +210,10 @@ flickr<-flickr[-which(flickr$latitude<48),]
 
 #check that data is all in the UK
 #using a nicer plot
+geopics<- flickr[,c(4,5)]                    #subset coordinates only
+
+coordinates(geopics)<-c("longitude","latitude") #make it spatial
+
 crs.geo <- CRS("+proj=longlat +ellps=WGS84 +datum=WGS84")  # geographical, datum WGS84
 proj4string(geopics) <- crs.geo                            # project coordinates
 
@@ -226,6 +231,8 @@ plot(countriesLow, add = T)
 #one more problem
 #some puffin photos on land
 #we need to remove those
+
+#read UK shapefile
 
 
 
