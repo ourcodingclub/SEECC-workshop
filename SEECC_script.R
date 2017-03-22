@@ -174,7 +174,7 @@ gbifmap(occur, region="UK")
 # Flickr data
 ##########################
 
-flickr<-read.table("./flickr_puffins.txt",header=T)
+flickr<-read.table("./data/flickr_puffins.txt",header=T)
 str(flickr)
 
 
