@@ -46,10 +46,29 @@ load("LPIdata_Feb2016.RData")
 # Inspect data ----
 View(head(LPIdata_Feb2016))
 
+
 # Clean data ----
 
+## Format column names 
+names(LPIdata_Feb2016) <- gsub(".", "_", names(LPIdata_Feb2016), fixed = TRUE) %>%
+  tolower(.)
+
+names(LPIdata_Feb2016) <- names(LPIdata_Feb2016) %>%
+  gsub(".", "_", ., fixed = TRUE) %>%
+  tolower(.)
+
 ## Make a column for genus_species_id
-LPI_long$genus_species_id <- paste(LPI_long$genus, LPI_long$species, LPI_long$id, sep = "_")
+LPIdata_Feb2016$genus_species_id <- paste(LPIdata_Feb2016$genus, LPIdata_Feb2016$species, LPIdata_Feb2016$id, sep = "_")
+LPIdata_Feb2016$genus_species <- paste(LPIdata_Feb2016$genus, LPIdata_Feb2016$species, sep = "_")
+
+length(unique(LPIdata_Feb2016$genus_species_id))
+length(unique(LPIdata_Feb2016$genus_species))
+length(unique(LPI_long$id))
+
+LPIdata_Feb2016$country_list <- gsub(",","",LPIdata_Feb2016$country_list, fixed = TRUE)
+LPIdata_Feb2016$biome <- gsub("/","",LPIdata_Feb2016$biome, fixed = TRUE)
+View(LPI_long[c(1:5,500:505,1000:1005),])
+
 
 ## Transform to long format, add useful columns, remove rows without sufficient data
 LPI_long <- LPIdata_Feb2016 %>%
@@ -70,13 +89,6 @@ LPI_long <- LPIdata_Feb2016 %>%
   mutate(., meanpop.size = mean(meanpop)) %>%  # Create column for mean mean population
   ungroup(.)
 
-## Format column names 
-names(LPI_long) <- gsub(".", "_", names(LPI_long), fixed = TRUE) %>%
-  tolower(.)
-
-names(LPI_long) <- names(LPI_long) %>%
-  gsub(".", "_", ., fixed = TRUE) %>%
-  tolower(.)
 
 # Summarise the data set ----
 LPI_summ <- LPI_long %>%
@@ -106,8 +118,15 @@ LPI_models_slopes <- merge(LPI_long, LPI_models) %>%
 # Explore data ----
 ## Dot plot of species dataset size, grouped by respective species class
 LPI_class_summ <- LPI_long %>%
-  group_by(genus_species, class) %>%
-  summarise(n = n())
+  group_by(class) %>%
+  summarise(populations = n(), 
+            mean_study_length_years = mean(lengthyear),
+            max_lat = max(decimal_latitude), 
+            min_lat = min(decimal_latitude),
+            dominant_sampling_method = names(which.max(table(sampling_method))),
+            dominant_units = names(which.max(table(units))))
+
+unique(LPI_long$sampling_method[which == "numeric"])
 
 ggplot(LPI_class_summ, aes(x = class, y = n)) + 
   geom_point(aes(colour = class), size = 2, alpha = 0.6)
