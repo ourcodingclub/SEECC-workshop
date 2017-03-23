@@ -14,8 +14,11 @@ map_world <- borders("world", colour="black", fill = "gray28")
 # Define UI ----
 ui <- navbarPage(title = "Living Planet Index",
                  tabPanel(title = "LPI Subsets",
-                          plotOutput("pop_vs_trend", width = 500),
-                          plotOutput("range_vs_trend", width = 500),
+                          fluidRow(
+                            column(4,plotOutput(outputId="pop_vs_trend", width="400px",height="400px")),  
+                            column(4,plotOutput(outputId="range_vs_trend", width="400px",height="400px")),
+                            column(4,plotOutput(outputId="range_vs_trend_1", width="400px",height="400px"))
+                            ),
                           selectInput(inputId = "realm_pop_vs_trend",
                                       label = "Realm",
                                       choices = unique(LPIGBIFUK$realm),
@@ -31,6 +34,7 @@ ui <- navbarPage(title = "Living Planet Index",
                                       )
                           )
                  )
+
 # Define server logic ----
 server <- function(input, output) {
 
@@ -102,6 +106,56 @@ server <- function(input, output) {
         legend.title = element_blank(),
         legend.text = element_text(size = 15))
     )
+  
+  
+  output$pop_vs_trend <- renderPlot(
+    ggplot() + 
+      geom_point(aes(x = log(meanpop.size), 
+                     y = slope, 
+                     colour = realm),
+                 data = LPIGBIFUK[LPIGBIFUK$realm == input$realm_pop_vs_trend,]) + 
+      geom_pointrange(aes(x = log(meanpop.size), 
+                          y = slope, 
+                          ymin = slope - slope_SE, 
+                          ymax = slope+slope_SE, 
+                          colour = realm),
+                      data = LPIGBIFUK[LPIGBIFUK$realm == input$realm_pop_vs_trend,]) +
+      geom_hline(yintercept = 0, linetype = "dashed") +
+      xlim(0, 20) +
+      ylim(-.15, .15) +
+      theme_classic() + 
+      theme(
+        axis.ticks = element_blank(),
+        axis.line = element_blank(),
+        panel.border = element_rect(colour="black", fill = NA, size=1),
+        panel.background = element_rect(fill="#FCFCFC"),
+        legend.position = "bottom",
+        legend.title = element_blank(),
+        legend.text = element_text(size = 15))
+  )
+  output$range_vs_trend_1 <- renderPlot(ggplot() +
+                                        geom_point(aes(x = km2_range, 
+                                                       y = slope, 
+                                                       colour = realm),
+                                                   data = LPIGBIFUK[LPIGBIFUK$realm == input$realm_pop_vs_trend,]) +
+                                        geom_pointrange(aes(x = km2_range, 
+                                                            y = slope, 
+                                                            ymin = slope - slope_SE, 
+                                                            ymax = slope + slope_SE,
+                                                            colour = realm),
+                                                        data = LPIGBIFUK[LPIGBIFUK$realm == input$realm_pop_vs_trend,]) +
+                                        geom_hline(yintercept = 0, linetype="dashed") + 
+                                        theme_classic() + 
+                                        theme(
+                                          axis.ticks = element_blank(),
+                                          axis.line = element_blank(),
+                                          panel.border = element_rect(colour="black", fill = NA, size=1),
+                                          panel.background = element_rect(fill="#FCFCFC"),
+                                          legend.position = "bottom",
+                                          legend.title = element_blank(),
+                                          legend.text = element_text(size = 15))
+  )
 }
+
 # Run application ----
 shinyApp(ui = ui, server = server)
