@@ -67,7 +67,6 @@ length(unique(LPI_long$id))
 
 LPIdata_Feb2016$country_list <- gsub(",","",LPIdata_Feb2016$country_list, fixed = TRUE)
 LPIdata_Feb2016$biome <- gsub("/","",LPIdata_Feb2016$biome, fixed = TRUE)
-View(LPI_long[c(1:5,500:505,1000:1005),])
 
 
 ## Transform to long format, add useful columns, remove rows without sufficient data
@@ -89,6 +88,7 @@ LPI_long <- LPIdata_Feb2016 %>%
   mutate(., meanpop.size = mean(meanpop)) %>%  # Create column for mean mean population
   ungroup(.)
 
+View(LPI_long[c(1:5,500:505,1000:1005),])
 
 # Summarise the data set ----
 LPI_summ <- LPI_long %>%
@@ -96,7 +96,7 @@ LPI_summ <- LPI_long %>%
 
 # Make linear models for each population ----
 LPI_models <- LPI_long %>%
-  group_by(., common_name, genus_species_id, units) %>%  # Groups Measurement_type(Units)>population(id)>species(Common.Name+species)
+  group_by(., genus_species_id) %>%  # Groups Measurement_type(Units)>population(id)>species(Common.Name+species)
   do(mod = lm(scalepop~year, data = .)) %>%  # Create a linear model for each group
   mutate(., n = df.residual(mod),  # Create columns: degrees of freedom
          intercept=summary(mod)$coeff[1],  # intercept coefficient
@@ -106,6 +106,26 @@ LPI_models <- LPI_long %>%
          intercept_p=summary(mod)$coeff[7],  # p value of intercept
          slope_p=summary(mod)$coeff[8]) %>%  # p value of slope
   filter(., n > 5) # Remove rows where degrees of freedom <5
+
+# 8293 for group common_name+genus_species_id+units
+# 8293 for group common_name+genus_species_id
+# 8293 for group genus_species_id    USE THIS MORE PARSIMONIOUS grouping!
+
+# Making a list of lm objects then extract coefficients into a data frame
+LPI_long_list <- split(LPI_long, f = LPI_long$genus_species_id)
+
+LPI_list_lm <- lapply(LPI_long_list, function(x) lm(scalepop ~ year, data = x, ))
+
+LPI_lapply_lm <- filter(data.frame(
+  "genus_species_id" = names(LPI_list_lm),
+  "n" = unlist(lapply(LPI_list_lm, function(x) df.residual(x))),
+  "intercept" = unlist(lapply(LPI_list_lm, function(x) summary(x)$coeff[1])),
+  "slope" = unlist(lapply(LPI_list_lm, function(x) summary(x)$coeff[2])),
+  "intercept_se" = unlist(lapply(LPI_list_lm, function(x) summary(x)$coeff[3])),
+  "slope_se" = unlist(lapply(LPI_list_lm, function(x) summary(x)$coeff[4])),
+  "intercept_p" = unlist(lapply(LPI_list_lm, function(x) summary(x)$coeff[7])),
+  "slope_p" = unlist(lapply(LPI_list_lm, function(x) summary(x)$coeff[8]))
+  ), n > 5)
 
 # Merge data frames back together
 LPI_models_slopes <- merge(LPI_long, LPI_models) %>%
