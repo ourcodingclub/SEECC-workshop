@@ -184,3 +184,22 @@ ggplot(LPI_models_slopes, aes(x=slope, fill=realm)) + geom_density(alpha=.3)
 
 # Gergana will add in plot with ggExtra and marginal histograms ----
 
+
+# Visualising Puffin GBIF data on a map
+load("puffin_GBIF.RData")
+map_world <- borders("world", colour="gray50", fill = "#383838")
+ggplot() + map_world + geom_point(data = puffin_GBIF, 
+                                  aes(x = decimallongitude, 
+                                      y = decimallatitude, 
+                                      colour = scientificname),
+                                  alpha = 0.4,
+                                  size = 1) + 
+  scale_color_brewer(palette = "Set1") + 
+  theme_classic() + 
+  ylab(expression("Latitude ("*degree*")" )) + 
+  xlab(expression("Longitude ("*degree*")" )) + 
+  theme(legend.position = "bottom",
+        legend.title = element_blank())
+
+display.brewer.all()
+
