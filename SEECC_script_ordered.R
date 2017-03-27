@@ -11,6 +11,7 @@ library(ggplot2)
 library(ggExtra)
 library(maps)
 library(RColorBrewer)
+library(readr)
 
 # Set working directory to source location
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
@@ -89,18 +90,17 @@ LPI_long <- LPI_long %>%
   ungroup(.)
 
 # Modelling population change over time ----
-
 # Run linear models of abundance trends over time for each population and extract model coefficients
 
-# Using lapply()
+## Using lapply() ----
 
-# Create a list of data frames by splitting `LPI_long` by population (`genus_species_id`)
+### Create a list of data frames by splitting `LPI_long` by population (`genus_species_id`)
 LPI_long_list <- split(LPI_long, f = LPI_long$genus_species_id)
 
-# lapply() a linear model (`lm`) to each data frame in the list and store as a list of linear models
+### lapply() a linear model (`lm`) to each data frame in the list and store as a list of linear models
 LPI_list_lm <- lapply(LPI_long_list, function(x) lm(scalepop ~ year, data = x))
 
-# Extract model coefficients and store them in a data frame
+### Extract model coefficients and store them in a data frame
 LPI_models_lapply <- filter(data.frame(
   "genus_species_id" = names(LPI_list_lm),
   "n" = unlist(lapply(LPI_list_lm, function(x) df.residual(x))),
@@ -109,14 +109,16 @@ LPI_models_lapply <- filter(data.frame(
   "intercept_se" = unlist(lapply(LPI_list_lm, function(x) summary(x)$coeff[3])),
   "slope_se" = unlist(lapply(LPI_list_lm, function(x) summary(x)$coeff[4])),
   "intercept_p" = unlist(lapply(LPI_list_lm, function(x) summary(x)$coeff[7])),
-  "slope_p" = unlist(lapply(LPI_list_lm, function(x) summary(x)$coeff[8]))
+  "slope_p" = unlist(lapply(LPI_list_lm, function(x) summary(x)$coeff[8])),
+  "lengthyear" = unlist(lapply(LPI_long_list, function(x) max((x)$lengthyear)))
 ), n > 5)
 
-# Using a loop !!! This takes hours to run !!!
+## Using a loop !!! This takes hours to run !!! ----
 
-# Create data frame to store results
+### Create data frame to store results
 LPI_models_loop <- data.frame()
 
+### Run the loop
 for(i in unique(LPI_long$genus_species_id)) {
   frm <- as.formula(paste("scalepop ~ year"))
   mylm <- lm(formula = frm, data = LPI_long[LPI_long$genus_species_id == i,])
@@ -141,7 +143,7 @@ for(i in unique(LPI_long$genus_species_id)) {
   
 }
 
-# Using a pipe
+## Using a pipe ----
 LPI_models_pipes <- LPI_long %>%
   group_by(., genus_species_id) %>%  # Groups Measurement_type(Units)>population(id)>species(Common.Name+species)
   do(mod = lm(scalepop ~ year, data = .)) %>%  # Create a linear model for each group
