@@ -236,6 +236,7 @@ plot(countriesLow, add = T)
 library(rgdal)
 library(rgeos)
 library(raster)
+library(maptools)
 
 #read Great Britain shapefile
 GB<-readOGR(dsn = "./data/Countries_December_2014_Full_Clipped_Boundaries_in_Great_Britain.shp",layer = "Countries_December_2014_Full_Clipped_Boundaries_in_Great_Britain")
@@ -258,4 +259,40 @@ plot(NI_diss)
 #merge GB and NI to make UK
 UK<-raster::union(GB_diss,NI_diss)
 plot(UK)
+
+#now transform LatLong to UTM
+UK_proj <- spTransform(UK, CRS("+proj=utm +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 "))
+geopics_proj<-spTransform(geopics, CRS("+proj=utm +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 "))
+
+#separate terrestrial and marine points
+geopics_terr<-geopics_proj[which(is.na(over(geopics_proj, UK_proj, fn = NULL))==FALSE),]
+plot(geopics_terr)
+
+geopics_mar<-geopics_proj[which(is.na(over(geopics_proj, UK_proj, fn = NULL))==TRUE),]
+plot(geopics_mar)
+
+UK_coast <- as(UK_proj, 'SpatialLines')
+plot(UK_coast)
+
+#determine which points are within 1Km from the coast
+dist<-gWithinDistance(geopics_terr,UK_coast, dist = 1000, byid=T)
+dist.df<-as.data.frame(dist)
+
+#select only coastal points
+coast_NI<-geopics_terr[which(dist.df[2,]=="TRUE"),]
+coast_GB<-geopics_terr[which(dist.df[1,]=="TRUE"),]
+
+geopics_coast<-spRbind(coast_NI,coast_GB)
+geopics_correct<-spRbind(geopics_mar,geopics_coast)
+
+#check
+plot(UK_coast)
+points(geopics_correct, pch = 20, col = "steelblue")
+
+
+
+
+
+
+
 
