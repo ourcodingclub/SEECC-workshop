@@ -90,7 +90,7 @@ LPI_long_list <- split(LPI_long, f = LPI_long$genus_species_id)
 # lapply() a linear model (`lm`) to each data frame in the list and store as a list of linear models
 LPI_list_lm <- lapply(LPI_long_list, function(x) lm(scalepop ~ year, data = x))
 
-### Extract model coefficients and store them in a data frame
+# Extract model coefficients and store them in a data frame
 LPI_models_lapply <- filter(data.frame(
   "genus_species_id" = names(LPI_list_lm),
   "n" = unlist(lapply(LPI_list_lm, function(x) df.residual(x))),
@@ -105,7 +105,7 @@ LPI_models_lapply <- filter(data.frame(
 
 # Using a loop !!! This can take a long time to run depending on your laptop !!!
 
-# Create data frame to store results
+# Create a data frame to store results
 LPI_models_loop <- data.frame()
 
 for(i in unique(LPI_long$genus_species_id)) {
@@ -113,7 +113,7 @@ for(i in unique(LPI_long$genus_species_id)) {
   mylm <- lm(formula = frm, data = LPI_long[LPI_long$genus_species_id == i,])
   sum <- summary(mylm)
   
-  # Extract mylmel coefficients
+  # Extract model coefficients
   n <- df.residual(mylm)
   intercept <- summary(mylm)$coeff[1]
   slope <- summary(mylm)$coeff[2]
@@ -145,8 +145,8 @@ LPI_models_pipes <- LPI_long %>%
          intercept_se = summary(mod)$coeff[3],  # standard error of intercept
          slope_se = summary(mod)$coeff[4],  # standard error of slope
          intercept_p = summary(mod)$coeff[7],  # p value of intercept
-         slope_p = summary(mod)$coeff[8],
-         lengthyear = lengthyear) %>%  # p value of slope
+         slope_p = summary(mod)$coeff[8],  # p value of slope
+         lengthyear = lengthyear) %>%  # Keeping the lengthyear column for future analysis
   filter(., n > 5) # Remove rows where degrees of freedom <5
 
 
@@ -185,13 +185,13 @@ biome.plots <- as.data.frame(LPI_long) %>%
 
 
 # Plotting slope estimates and standard errors for all populations and adding histograms along the margins
-all_slopes <- ggplot(LPI_models_pipes, aes(x = lengthyear, y = slope)) +
+(all_slopes <- ggplot(LPI_models_pipes, aes(x = lengthyear, y = slope)) +
   geom_point() +
   geom_pointrange(aes(ymin = slope - slope_se, ymax = slope + slope_se)) +
   geom_hline(yintercept = 0, linetype = "dashed") +
   theme_LPI() +
   ylab("Population change\n") +
-  xlab("\nDuration (years)")
+  xlab("\nDuration (years)"))
 
 ggExtra::ggMarginal(
   p = p1,
