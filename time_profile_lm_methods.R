@@ -80,9 +80,14 @@ colnames(elapsed_time) <- names(lapply_list)
 elapsed_time$Method <- c("lapply", "loop", "pipe")
 
 # Reorder columns for easy reading
-elapsed_time <- elapsed_time[,c(6,3,1,2,4,5)]
+elapsed_time <- elapsed_time[,c(6,3,1,2,4,5)] %>%
+  arrange(., desc(elapsed))
 
 elapsed_time
+
+# write.csv(elapsed_time, "elapsed_time.csv")
+
+
 
 
 
