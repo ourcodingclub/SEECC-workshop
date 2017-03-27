@@ -4,6 +4,7 @@
 # Isla Myers-Smith (isla.myers-smith@ed.ac.uk)
 
 # Packages ---
+library(readr)
 library(tidyr)
 library(dplyr)
 library(broom)
@@ -11,7 +12,6 @@ library(ggplot2)
 library(ggExtra)
 library(maps)
 library(RColorBrewer)
-library(readr)
 
 # Set working directory to source location
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
@@ -68,9 +68,9 @@ LPI_long <- LPI_long %>%
   filter(., lengthyear > 5) %>%  # Only keep rows with more than 5 years of data
   ungroup(.)  # Remove any groupings you've greated in the pipe, not entirely necessary but it's better to be safe
 
-# Calculate summary statistics for each taxonomic class
-LPI_class_summ <- LPI_long %>%
-  group_by(class) %>%  # Group by class
+# Calculate summary statistics for each biome
+LPI_biome_summ <- LPI_long %>%
+  group_by(biome) %>%  # Group by biome
   summarise(populations = n(),   # Create columns, number of populations
             mean_study_length_years = mean(lengthyear),  # mean study length
             max_lat = max(decimal_latitude),  # max latitude
@@ -78,26 +78,16 @@ LPI_class_summ <- LPI_long %>%
             dominant_sampling_method = names(which.max(table(sampling_method))),  # modal sampling method
             dominant_units = names(which.max(table(units))))  # modal unit type
 
-# Calculate mean population size
-LPI_long <- LPI_long %>%
-  group_by(., common_name, genus_species_id, units) %>%  # Groups Measurement_type(Units)>population(id)>species(Common.Name+species)
-  mutate(., scalepop = (pop-min(pop))/(max(pop)-min(pop))) %>%  # Scale population trend from 0 to 1
-  filter(., is.finite(scalepop)) %>%  # Remove rows without a scalepop
-  mutate(., meanpop = mean(pop)) %>%  # Create column for mean population
-  ungroup(.) %>%
-  group_by(., common_name, genus_species_id) %>%
-  mutate(., meanpop.size = mean(meanpop)) %>%  # Create column for mean mean population
-  ungroup(.)
-
 # Modelling population change over time ----
+
 # Run linear models of abundance trends over time for each population and extract model coefficients
 
-## Using lapply() ----
+# Using lapply()
 
-### Create a list of data frames by splitting `LPI_long` by population (`genus_species_id`)
+# Create a list of data frames by splitting `LPI_long` by population (`genus_species_id`)
 LPI_long_list <- split(LPI_long, f = LPI_long$genus_species_id)
 
-### lapply() a linear model (`lm`) to each data frame in the list and store as a list of linear models
+# lapply() a linear model (`lm`) to each data frame in the list and store as a list of linear models
 LPI_list_lm <- lapply(LPI_long_list, function(x) lm(scalepop ~ year, data = x))
 
 ### Extract model coefficients and store them in a data frame
@@ -113,12 +103,11 @@ LPI_models_lapply <- filter(data.frame(
   "lengthyear" = unlist(lapply(LPI_long_list, function(x) max((x)$lengthyear)))
 ), n > 5)
 
-## Using a loop !!! This takes hours to run !!! ----
+# Using a loop !!! This can take a long time to run depending on your laptop !!!
 
-### Create data frame to store results
+# Create data frame to store results
 LPI_models_loop <- data.frame()
 
-### Run the loop
 for(i in unique(LPI_long$genus_species_id)) {
   frm <- as.formula(paste("scalepop ~ year"))
   mylm <- lm(formula = frm, data = LPI_long[LPI_long$genus_species_id == i,])
@@ -143,17 +132,21 @@ for(i in unique(LPI_long$genus_species_id)) {
   
 }
 
-## Using a pipe ----
+# Remove rows where degrees of freedom <5
+LPI_models_loop <- filter(LPI_models_loop, n > 5)
+
+# Using a pipe
 LPI_models_pipes <- LPI_long %>%
   group_by(., genus_species_id) %>%  # Groups Measurement_type(Units)>population(id)>species(Common.Name+species)
   do(mod = lm(scalepop ~ year, data = .)) %>%  # Create a linear model for each group
   mutate(., n = df.residual(mod),  # Create columns: degrees of freedom
-         intercept=summary(mod)$coeff[1],  # intercept coefficient
-         slope=summary(mod)$coeff[2],  # slope coefficient
-         intercept_se=summary(mod)$coeff[3],  # standard error of intercept
-         slope_se=summary(mod)$coeff[4],  # standard error of slope
-         intercept_p=summary(mod)$coeff[7],  # p value of intercept
-         slope_p=summary(mod)$coeff[8]) %>%  # p value of slope
+         intercept = summary(mod)$coeff[1],  # intercept coefficient
+         slope = summary(mod)$coeff[2],  # slope coefficient
+         intercept_se = summary(mod)$coeff[3],  # standard error of intercept
+         slope_se = summary(mod)$coeff[4],  # standard error of slope
+         intercept_p = summary(mod)$coeff[7],  # p value of intercept
+         slope_p = summary(mod)$coeff[8],
+         lengthyear = lengthyear) %>%  # p value of slope
   filter(., n > 5) # Remove rows where degrees of freedom <5
 
 
@@ -209,7 +202,7 @@ ggExtra::ggMarginal(
   fill = 'gray'
 )
 
-# Visualising species occurrence
+# Visualising species occurrence ----
 # Atlantic puffin as an example
 
 # Use borders() to pull some world map data from the maps package
