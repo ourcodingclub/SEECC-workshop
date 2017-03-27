@@ -141,7 +141,7 @@ LPI_models_loop <- filter(LPI_models_loop, n > 5)
 
 # Using a pipe
 LPI_models_pipes <- LPI_long %>%
-  group_by(., genus_species_id) %>% 
+  group_by(., genus_species_id, lengthyear) %>% 
   do(mod = lm(scalepop ~ year, data = .)) %>%  # Create a linear model for each group
   mutate(., n = df.residual(mod),  # Create columns: degrees of freedom
          intercept = summary(mod)$coeff[1],  # intercept coefficient
@@ -150,6 +150,8 @@ LPI_models_pipes <- LPI_long %>%
          slope_se = summary(mod)$coeff[4],  # standard error of slope
          intercept_p = summary(mod)$coeff[7],  # p value of intercept
          slope_p = summary(mod)$coeff[8]) %>%  # p value of slope
+  ungroup() %>%
+  mutate(., lengthyear = lengthyear) %>%
   filter(., n > 5) # Remove rows where degrees of freedom <5
 
 
