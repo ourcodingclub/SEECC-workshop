@@ -109,7 +109,8 @@ LPI_models_lapply <- filter(data.frame(
   "intercept_se" = unlist(lapply(LPI_list_lm, function(x) summary(x)$coeff[3])),
   "slope_se" = unlist(lapply(LPI_list_lm, function(x) summary(x)$coeff[4])),
   "intercept_p" = unlist(lapply(LPI_list_lm, function(x) summary(x)$coeff[7])),
-  "slope_p" = unlist(lapply(LPI_list_lm, function(x) summary(x)$coeff[8]))
+  "slope_p" = unlist(lapply(LPI_list_lm, function(x) summary(x)$coeff[8])),
+  "lengthyear" = unlist(lapply(LPI_long_list, function(x) max((x)$lengthyear)))
 ), n > 5)
 
 ## Using a loop !!! This takes hours to run !!! ----
