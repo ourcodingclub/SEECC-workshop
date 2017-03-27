@@ -268,4 +268,30 @@ geopics_correct<-spRbind(geopics_mar,geopics_coast)
 plot(UK_coast)
 points(geopics_correct, pch = 20, col = "steelblue")
 
+#############################################
+##Compare Flickr and GBIF with density maps
+#############################################
+library(ggplot2)
+
+UK.Df<-fortify(UK_diss,region="ID_0")
+
+flickr.points<-fortify(cbind(geopics_correct@data,geopics_correct@coords))
+
+plot.years <- ggplot(data=flickr.points,aes(x=longitude, y=latitude))+
+              geom_polygon(data=UK.Df,aes(x=long, y=lat, group=group), 
+              color="black", fill="gray82") + coord_fixed() +
+              geom_point(color="dodgerblue4",size=1,shape=".")+
+              stat_density2d(aes(x = longitude, 
+              y = latitude,  fill = ..level.., alpha = ..level..), 
+              geom = "polygon", colour = "grey95",size=0.3) +
+              scale_fill_gradient(low = "yellow", high = "red") +
+              scale_alpha(range = c(.25, .5), guide = FALSE) +
+              facet_wrap(~ year)+
+              theme(text=element_text(size=18),legend.position = c(.9, .15))
+
+plot.years
+
+
+
+
 
