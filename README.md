@@ -1,4 +1,4 @@
-# Joing University of Edinburgh & University of Aberdeen coding workshop
+# Joint University of Edinburgh & University of Aberdeen coding workshop
 
 You can check out the online tutorial here https://ourcodingclub.github.io/2017/03/20/seecc.html
 
