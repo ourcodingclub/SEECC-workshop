@@ -33,7 +33,7 @@ baseURL <- paste("https://api.flickr.com/services/rest/?method=flickr.photos.sea
 pics<-NULL                              #creates empty object to store the data
 year<-seq(2005,2016,1)                  #creates variable "year" so that query returns pictures taken between 2005 and 2014
 text<-"puffin"                          #set keywords so that query returns pictures with the text "bird"
-woeid<-"23424975"                       #only return pictures taken in Scotland
+woeid<-"23424975"                       #only return pictures taken in the UK
 hasgeo<-"1"                             #only return pictures that are geotagged
 extras<-"date_taken,geo"                #extra information to download
 perpage<-"250"                          #number of results to return per page
@@ -61,7 +61,7 @@ for (y in 1:length(year)){                     #creates object dates
   
   
   
-  getPhotos <- paste(baseURL                                           #request URL
+  getPhotos <- paste(baseURL                                           # make the request URL
                      ,"&text=",text,"&min_taken_date=",mindate,
                      "&max_taken_date=",maxdate,"&woe_id=",woeid,
                      "&has_geo=",hasgeo,"&extras=",extras,
@@ -70,7 +70,7 @@ for (y in 1:length(year)){                     #creates object dates
   
   
   getPhotos_data <- xmlRoot(xmlTreeParse(getURL                                    #parse URL and extract root node
-                                         (getPhotos,ssl.verifypeer=FALSE, useragent = "flickr") ))
+                          (getPhotos,ssl.verifypeer=FALSE, useragent = "flickr") ))
   
   #results are returned in different pages so it is necessary to loop through pages to collect all the data
   #parse the total number of pages
@@ -80,23 +80,23 @@ for (y in 1:length(year)){                     #creates object dates
   colnames(pages_data)<- "value"
   total_pages <- pages_data["pages","value"]
   
-  if(total_pages==0){break}
+  if(total_pages==0){break}         # stop the loop if there are no results
   
-  pics_tmp<-NULL
+  pics_tmp<-NULL                    #create empty dataframe to store data temporarily
   
   
   # loop thru pages of photos and save the list in a DF
   for(i in c(1:total_pages)){
-    getPhotos <- paste(baseURL
+    getPhotos <- paste(baseURL                                                #create request URL
                        ,"&text=",text,"&min_taken_date=",mindate,
                        "&max_taken_date=",maxdate,"&woe_id=",woeid,
                        "&has_geo=",hasgeo,"&extras=",extras,
                        "&per_page=",perpage,"&format=",format,"&page="
                        ,i,sep="")
     
-    getPhotos_data <- xmlRoot(xmlTreeParse(getURL
-                                           (getPhotos,ssl.verifypeer=FALSE, useragent = "flickr")
-                                           ,useInternalNodes = TRUE ))
+    getPhotos_data <- xmlRoot(xmlTreeParse(getURL                                # parse URL and extract root node
+                          (getPhotos,ssl.verifypeer=FALSE, useragent = "flickr")
+                          ,useInternalNodes = TRUE ))
     
     id<-xpathSApply(getPhotos_data,"//photo",xmlGetAttr,"id")                 #extract photo id
     owner<-xpathSApply(getPhotos_data,"//photo",xmlGetAttr,"owner")           #extract user id
@@ -104,14 +104,14 @@ for (y in 1:length(year)){                     #creates object dates
     latitude<- xpathSApply(getPhotos_data,"//photo",xmlGetAttr,"latitude")    #extract latitude
     longitude<- xpathSApply(getPhotos_data,"//photo",xmlGetAttr,"longitude")  #extract longitude
     
-    tmp_df<-data.frame(cbind(id,owner,datetaken,latitude,longitude),stringsAsFactors=FALSE)
+    tmp_df<-data.frame(cbind(id,owner,datetaken,latitude,longitude),stringsAsFactors=FALSE)  #put together in a df
     
     tmp_df$page <- i
-    pics_tmp<-rbind(pics_tmp,tmp_df)
+    pics_tmp<-rbind(pics_tmp,tmp_df)                                        
   }
   
   
-  pics<-rbind(pics,pics_tmp)
+  pics<-rbind(pics,pics_tmp)                                                  #add to big dataframe
   }}
 
 ################################
@@ -156,12 +156,11 @@ str(pics_unique)
 library(stringr)
 
 summary(pics_unique)                                          #make sure data is ok
-which(pics_unique$latitude==0)
-#one photo has latitude of 0
+
+which(pics_unique$latitude==0)                                #one photo has latitude of 0
 
 pics<-pics[-which(pics$latitude==0),]                         #delete data with latitude recorded as 0
 
 pics$datetaken<- str_replace_all(pics$datetaken, " ","_")     #substitute white spaces with "_"
-
 
 write.table(pics_unique,"./flickr_puffins.txt", row.names=F,sep="\t", quote=F) #save dataset
