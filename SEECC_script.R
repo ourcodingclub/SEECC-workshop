@@ -146,21 +146,18 @@ ggplot(LPI_models_slopes, aes(x=slope, fill=realm)) + geom_density(alpha=.3)
 ### GBIF pufin data
 ###########################
 
-#load the package
+#load the packages
 library(rgbif)
 library(sp)
 
 #get the code for the UK
 UK_code <- isocodes[grep("United Kingdom", isocodes$name), "code"]
 
-#return the number of occurrences in the UK
-occ_count(country=UK_code)
-
 # scientific name for puffin
 species<-"Fratercula arctica"
 
 #download all the occurrences of Fratercula arctica in the UK that have geographic coordinates and return dataset
-occur<-occ_search(scientificName = species, country = UK_code, hasCoordinate = TRUE, year = '2005,2016', return = "data")
+occur<-occ_search(scientificName = species, country = UK_code, hasCoordinate = TRUE, limit=3000, year = '2006,2016', return = "data")
 str(occur)
 
 #map the occurrences
@@ -275,22 +272,55 @@ library(ggplot2)
 
 UK.Df<-fortify(UK_diss,region="ID_0")
 
+#plot Flickr data
+
 flickr.points<-fortify(cbind(geopics_correct@data,geopics_correct@coords))
 
 plot.years <- ggplot(data=flickr.points,aes(x=longitude, y=latitude))+
               geom_polygon(data=UK.Df,aes(x=long, y=lat, group=group), 
               color="black", fill="gray82") + coord_fixed() +
-              geom_point(color="dodgerblue4",size=1,shape=".")+
+              geom_point(color="dodgerblue4",size=2,shape=".")+
               stat_density2d(aes(x = longitude, 
               y = latitude,  fill = ..level.., alpha = ..level..), 
               geom = "polygon", colour = "grey95",size=0.3) +
               scale_fill_gradient(low = "yellow", high = "red") +
               scale_alpha(range = c(.25, .5), guide = FALSE) +
               facet_wrap(~ year)+
-              theme(text=element_text(size=18),legend.position = c(.9, .15))
+              theme(axis.title.x=element_blank(), axis.text.x=element_blank(),
+                    axis.ticks.x=element_blank(),axis.title.y=element_blank(), 
+                    axis.text.y=element_blank(), axis.ticks.y=element_blank(),
+                    text=element_text(size=18),legend.position = c(.9, .15))
 
 plot.years
 
+
+#plot gbif data
+
+coordinates(occur)<-c("decimalLongitude","decimalLatitude") #make it spatial
+
+crs.geo <- CRS("+proj=longlat +ellps=WGS84 +datum=WGS84")  # geographical, datum WGS84
+proj4string(occur) <- crs.geo                             # project coordinates
+
+occur_proj <- spTransform(occur, CRS("+proj=utm +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 "))
+
+gbif.points<-fortify(cbind(occur_proj@data,occur_proj@coords))
+
+plot.years.gbif <- ggplot(data=gbif.points,aes(x=decimalLongitude, y=decimalLatitude))+
+  geom_polygon(data=UK.Df,aes(x=long, y=lat, group=group), 
+               color="black", fill="gray82") + coord_fixed() +
+  geom_point(color="dodgerblue4",size=2,shape=".")+
+  stat_density2d(aes(x = decimalLongitude, 
+                     y = decimalLatitude,  fill = ..level.., alpha = ..level..), 
+                 geom = "polygon", colour = "grey95",size=0.3) +
+  scale_fill_gradient(low = "yellow", high = "red") +
+  scale_alpha(range = c(.25, .5), guide = FALSE) +
+  facet_wrap(~ year)+
+  theme(axis.title.x=element_blank(), axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),axis.title.y=element_blank(), 
+        axis.text.y=element_blank(), axis.ticks.y=element_blank(),
+        text=element_text(size=18),legend.position = c(.9, .15))
+
+plot.years.gbif
 
 
 
