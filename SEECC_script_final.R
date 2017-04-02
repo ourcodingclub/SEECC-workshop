@@ -169,7 +169,7 @@ pipe_pipe <- system.time(LPI_models_pipes <- LPI_long %>%
 )
 
 pipe_pipe
-
+    
 # Saving data frame as RData file
 save(LPI_models_pipes, file = "LPI_models_pipes.RData")
 
@@ -243,7 +243,7 @@ ggplot() + map_world +  # Plot the map
 
 
 #############################
-### Download GBIF pufin data
+### Download GBIF puffin data
 #############################
 
 # load the packages
@@ -280,7 +280,7 @@ gbifmap(occur, region="UK")
 library(lubridate)
 
 # read the dataset
-flickr<-read.table("./data/flickr_puffins.txt",header=T)
+flickr<-read.table("./flickr_puffins.txt",header=T)
 str(flickr)
 
 # change the format of some of the variables
@@ -455,6 +455,3 @@ plot.years.gbif <- ggplot(data=gbif.points,aes(x=decimalLongitude, y=decimalLati
         panel.background = element_blank())                            
 
 plot.years.gbif
-
-
-
