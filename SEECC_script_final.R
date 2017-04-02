@@ -197,11 +197,15 @@ theme_LPI <- function(){
 biome.plots <- LPI_long %>%
   group_by(., genus_species_id, biome) %>% 
   do(mod = lm(scalepop ~ year, data = .)) %>% 
-  tidy(mod) %>%
+  tidy(mod) %>% 
+  select(., genus_species_id, biome, term, estimate) %>% 
+  spread(., term, estimate) %>%
   ungroup() %>%
   group_by(., biome) %>%
-  do(ggsave(ggplot(.,aes(x = estimate)) + geom_histogram(colour="#8B5A00", fill="#CD8500") + theme_LPI(), 
+  do(ggsave(ggplot(.,aes(x = year)) + geom_histogram(colour="#8B5A00", fill="#CD8500") + theme_LPI() 
+            + xlab("Rate of population change (slopes)"), 
             filename = gsub("", "", paste("Biome_LPI/", unique(as.character(.$biome)), ".pdf", sep="")), device="pdf"))
+
 
 # Plotting slope estimates and standard errors for all populations and adding histograms along the margins
 p1 <- (all_slopes <- ggplot(LPI_models_lapply, aes(x = lengthyear, y = slope)) +
