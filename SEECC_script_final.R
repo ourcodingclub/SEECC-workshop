@@ -265,7 +265,7 @@ gbifmap(occur, region="UK")
 library(lubridate)
 
 # read the dataset
-flickr<-read.table("./data/flickr_puffins.txt",header=T)
+flickr<-read.table("./flickr_puffins.txt",header=T)
 str(flickr)
 
 # change the format of some of the variables
