@@ -395,10 +395,12 @@ plot.years <- ggplot(data=flickr.points,aes(x=longitude, y=latitude))+          
   scale_fill_gradient(low = "yellow", high = "red") +                 # set colour palette for density layer
   scale_alpha(range = c(.25, .5), guide = FALSE) +                    # set transparency for the density layer 
   facet_wrap(~ year)+                                                 # multipanel plot according to the variable "year" in the flickr dataset
-  theme(axis.title.x=element_blank(), axis.text.x=element_blank(),    # don't display x and y axes labels, titles and tickmarks 
-        axis.ticks.x=element_blank(),axis.title.y=element_blank(), 
+  theme(axis.title.x=element_blank(), axis.text.x=element_blank(),  # don't display x and y axes labels, titles and tickmarks 
+        axis.ticks.x=element_blank(),axis.title.y=element_blank(),   
         axis.text.y=element_blank(), axis.ticks.y=element_blank(),
-        text=element_text(size=18),legend.position = c(.9, .15))      # size of text and position of the legend
+        text=element_text(size=18),legend.position = c(.9, .15),       # size of text and position of the legend
+        panel.grid.major = element_blank(),                            # eliminates grid lines from background
+        panel.background = element_blank())                            # set white background
 
 # now plot
 # it takes a while!
@@ -430,10 +432,12 @@ plot.years.gbif <- ggplot(data=gbif.points,aes(x=decimalLongitude, y=decimalLati
   scale_fill_gradient(low = "yellow", high = "red") +
   scale_alpha(range = c(.25, .5), guide = FALSE) +
   facet_wrap(~ year)+
-  theme(axis.title.x=element_blank(), axis.text.x=element_blank(),
-        axis.ticks.x=element_blank(),axis.title.y=element_blank(), 
+  theme(axis.title.x=element_blank(), axis.text.x=element_blank(),  
+        axis.ticks.x=element_blank(),axis.title.y=element_blank(),   
         axis.text.y=element_blank(), axis.ticks.y=element_blank(),
-        text=element_text(size=18),legend.position = c(.9, .15))
+        text=element_text(size=18),legend.position = c(.9, .15),       
+        panel.grid.major = element_blank(),                            
+        panel.background = element_blank())                            
 
 plot.years.gbif
 
