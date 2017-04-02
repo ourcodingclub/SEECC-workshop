@@ -154,7 +154,22 @@ LPI_models_pipes <- LPI_long %>%
   mutate(., lengthyear = lengthyear) %>%
   filter(., n > 5) # Remove rows where degrees of freedom <5
 
+# Profiling using system.time()
+pipe_pipe <- system.time(LPI_models_pipes <- LPI_long %>%
+                           group_by(., genus_species_id) %>%  # Groups Measurement_type(Units)>population(id)>species(Common.Name+species)
+                           do(mod = lm(scalepop ~ year, data = .)) %>%  # Create a linear model for each group
+                           mutate(., n = df.residual(mod),  # Create columns: degrees of freedom
+                                  intercept=summary(mod)$coeff[1],  # intercept coefficient
+                                  slope=summary(mod)$coeff[2],  # slope coefficient
+                                  intercept_se=summary(mod)$coeff[3],  # standard error of intercept
+                                  slope_se=summary(mod)$coeff[4],  # standard error of slope
+                                  intercept_p=summary(mod)$coeff[7],  # p value of intercept
+                                  slope_p=summary(mod)$coeff[8]) %>%  # p value of slope
+                           filter(., n > 5) # Remove rows where degrees of freedom <5
+)
 
+pipe_pipe
+    
 # Saving data frame as RData file
 save(LPI_models_pipes, file = "LPI_models_pipes.RData")
 
@@ -228,7 +243,7 @@ ggplot() + map_world +  # Plot the map
 
 
 #############################
-### Download GBIF pufin data
+### Download GBIF puffin data
 #############################
 
 # load the packages
@@ -440,6 +455,3 @@ plot.years.gbif <- ggplot(data=gbif.points,aes(x=decimalLongitude, y=decimalLati
         panel.background = element_blank())                            
 
 plot.years.gbif
-
-
-
