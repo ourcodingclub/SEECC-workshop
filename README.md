@@ -11,6 +11,8 @@ Species occurrence data from GBIF http://www.gbif.org/
  
 #### If you have any questions about completing this tutorial, please contact us on ourcodingclub@gmail.com
 
+Check out https://ourcodingclub.github.io/workshop/ to learn how you can get involved!
+
 #### <a href="https://www.surveymonkey.co.uk/r/9L5ZFNK">We would love to hear your feedback on the tutorial, whether you did it at a Coding Club workshop or online!</a>
 
 This work is licensed under a [Creative Commons Attribution-ShareAlike 4.0 International License](https://creativecommons.org/licenses/by-sa/4.0/).
